@@ -1,0 +1,126 @@
+import { useState, useEffect } from "react";
+
+export default function StatsPomodoroApp() {
+  const [mode, setMode] = useState("stats"); // "stats" or "pomodoro"
+  const [stats, setStats] = useState({ healthXP: 0, financeXP: 0, deenXP: 0 });
+  const [timeLeft, setTimeLeft] = useState(25 * 60); // 25 minutes in seconds
+  const [isRunning, setIsRunning] = useState(false);
+  const [xpInput, setXpInput] = useState(0);
+  const [selectedStat, setSelectedStat] = useState("healthXP");
+
+  // Rank calculation based on levels
+  const getRank = (xp) => {
+    const level = Math.floor(xp / 100);
+    if (level >= 101) return { rank: "S-Rank (Mastery)", level };
+    if (level >= 76) return { rank: "A-Rank (Elite)", level };
+    if (level >= 51) return { rank: "B-Rank (Skilled)", level };
+    if (level >= 26) return { rank: "C-Rank (Advanced Beginner)", level };
+    if (level >= 11) return { rank: "D-Rank (Intermediate)", level };
+    return { rank: "E-Rank (Beginner)", level };
+  };
+
+  useEffect(() => {
+    let timer;
+    if (isRunning) {
+      timer = setInterval(() => {
+        setTimeLeft((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            setIsRunning(false);
+            return 25 * 60; // Reset timer
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [isRunning]);
+
+  function formatTime(seconds) {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
+  }
+
+  function addXP() {
+    setStats((prevStats) => ({
+      ...prevStats,
+      [selectedStat]: prevStats[selectedStat] + parseInt(xpInput, 10),
+    }));
+    setXpInput(0);
+  }
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-6">
+      {mode === "stats" ? (
+        <div className="bg-white p-8 rounded-lg shadow-md w-80 max-w-sm">
+          <h1 className="text-2xl font-semibold mb-6 text-gray-800">🎮 Stats & Rank</h1>
+          <div className="mb-4 text-gray-600">
+            <p>💖 Health: {getRank(stats.healthXP).rank} (Level: {getRank(stats.healthXP).level}, XP: {stats.healthXP})</p>
+            <p>💰 Finance: {getRank(stats.financeXP).rank} (Level: {getRank(stats.financeXP).level}, XP: {stats.financeXP})</p>
+            <p>🕌 Deen: {getRank(stats.deenXP).rank} (Level: {getRank(stats.deenXP).level}, XP: {stats.deenXP})</p>
+          </div>
+
+          <div className="flex items-center space-x-4 mt-6">
+            <input
+              type="number"
+              className="p-3 rounded-lg border border-gray-300 w-full"
+              value={xpInput}
+              onChange={(e) => setXpInput(e.target.value)}
+              placeholder="Add XP"
+            />
+            <select
+              className="p-3 rounded-lg border border-gray-300"
+              value={selectedStat}
+              onChange={(e) => setSelectedStat(e.target.value)}
+            >
+              <option value="healthXP">Health</option>
+              <option value="financeXP">Finance</option>
+              <option value="deenXP">Deen</option>
+            </select>
+            <button
+              className="bg-blue-500 text-white px-6 py-3 rounded-lg shadow-md hover:bg-blue-600"
+              onClick={addXP}
+            >
+              Add XP
+            </button>
+          </div>
+
+          <button
+            className="mt-6 w-full bg-gray-800 text-white py-3 rounded-lg hover:bg-gray-900 transition-all"
+            onClick={() => setMode("pomodoro")}
+          >
+            Start Pomodoro
+          </button>
+        </div>
+      ) : (
+        <div className="bg-white p-8 rounded-lg shadow-md w-80 max-w-sm">
+          <h1 className="text-2xl font-semibold mb-6 text-gray-800">⏳ Pomodoro Timer</h1>
+          <p className="text-4xl font-mono mb-4 text-gray-800">{formatTime(timeLeft)}</p>
+
+          <div className="flex gap-4 mt-6">
+            <button
+              className="w-1/2 bg-green-500 text-white py-3 rounded-lg hover:bg-green-600 transition-all"
+              onClick={() => setIsRunning(!isRunning)}
+            >
+              {isRunning ? "Pause" : "Start"}
+            </button>
+            <button
+              className="w-1/2 bg-red-500 text-white py-3 rounded-lg hover:bg-red-600 transition-all"
+              onClick={() => { setTimeLeft(25 * 60); setIsRunning(false); }}
+            >
+              Reset
+            </button>
+          </div>
+
+          <button
+            className="mt-6 w-full bg-gray-800 text-white py-3 rounded-lg hover:bg-gray-900 transition-all"
+            onClick={() => setMode("stats")}
+          >
+            Back to Stats
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
