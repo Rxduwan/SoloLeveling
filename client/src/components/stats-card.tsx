@@ -14,10 +14,10 @@ interface StatsCardProps {
 
 export function StatsCard({ title, xp, icon, onAddXP }: StatsCardProps) {
   const [xpInput, setXpInput] = useState("");
-  
+
   const level = Math.floor(xp / 100);
   const progress = (xp % 100);
-  
+
   const getRank = () => {
     if (level >= 101) return "S-Rank (Mastery)";
     if (level >= 76) return "A-Rank (Elite)";
@@ -25,6 +25,18 @@ export function StatsCard({ title, xp, icon, onAddXP }: StatsCardProps) {
     if (level >= 26) return "C-Rank (Advanced)";
     if (level >= 11) return "D-Rank (Intermediate)";
     return "E-Rank (Beginner)";
+  };
+
+  const handleAddXP = () => {
+    const amount = parseInt(xpInput);
+    if (!isNaN(amount)) {
+      // Only add XP if the result won't be negative
+      const newXP = xp + amount;
+      if (newXP >= 0) {
+        onAddXP(amount);
+      }
+      setXpInput("");
+    }
   };
 
   return (
@@ -44,8 +56,11 @@ export function StatsCard({ title, xp, icon, onAddXP }: StatsCardProps) {
               <span>{progress}/100 XP</span>
             </div>
             <Progress value={progress} />
+            <div className="text-sm text-muted-foreground mt-2 text-right">
+              Total XP: {xp}
+            </div>
           </div>
-          
+
           <div className="flex space-x-2">
             <Input
               type="number"
@@ -56,13 +71,7 @@ export function StatsCard({ title, xp, icon, onAddXP }: StatsCardProps) {
             />
             <Button
               size="sm"
-              onClick={() => {
-                const amount = parseInt(xpInput);
-                if (!isNaN(amount)) {
-                  onAddXP(amount);
-                  setXpInput("");
-                }
-              }}
+              onClick={handleAddXP}
             >
               <Plus className="h-4 w-4" />
             </Button>

@@ -30,13 +30,28 @@ export class PostgresStorage implements IStorage {
   async updateStats(newStats: InsertStats): Promise<Stats> {
     const [existingStats] = await db.select().from(stats).limit(1);
     if (!existingStats) {
-      const [stats] = await db.insert(stats).values(newStats).returning();
+      // Ensure no negative values in initial stats
+      const sanitizedStats = {
+        healthXP: Math.max(0, newStats.healthXP),
+        financeXP: Math.max(0, newStats.financeXP),
+        deenXP: Math.max(0, newStats.deenXP),
+        intellectXP: Math.max(0, newStats.intellectXP),
+      };
+      const [stats] = await db.insert(stats).values(sanitizedStats).returning();
       return stats;
     }
 
+    // Calculate new values ensuring they don't go below 0
+    const updatedValues = {
+      healthXP: Math.max(0, newStats.healthXP ?? existingStats.healthXP),
+      financeXP: Math.max(0, newStats.financeXP ?? existingStats.financeXP),
+      deenXP: Math.max(0, newStats.deenXP ?? existingStats.deenXP),
+      intellectXP: Math.max(0, newStats.intellectXP ?? existingStats.intellectXP),
+    };
+
     const [updatedStats] = await db
       .update(stats)
-      .set(newStats)
+      .set(updatedValues)
       .where(eq(stats.id, existingStats.id))
       .returning();
     return updatedStats;
