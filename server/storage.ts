@@ -1,7 +1,7 @@
-import { stats, type Stats, type InsertStats } from "@shared/schema";
+import { stats, objectives, type Stats, type InsertStats, type Objective, type InsertObjective } from "@shared/schema";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import { eq } from "drizzle-orm";
+import { eq, and, lt, gte } from "drizzle-orm";
 
 const client = postgres(process.env.DATABASE_URL!);
 const db = drizzle(client);
@@ -9,6 +9,10 @@ const db = drizzle(client);
 export interface IStorage {
   getStats(): Promise<Stats>;
   updateStats(newStats: InsertStats): Promise<Stats>;
+  getObjectives(): Promise<Objective[]>;
+  createObjective(objective: InsertObjective): Promise<Objective>;
+  toggleObjective(id: number): Promise<Objective>;
+  clearOldObjectives(): Promise<void>;
 }
 
 export class PostgresStorage implements IStorage {
@@ -55,6 +59,59 @@ export class PostgresStorage implements IStorage {
       .where(eq(stats.id, existingStats.id))
       .returning();
     return updatedStats;
+  }
+
+  async getObjectives(): Promise<Objective[]> {
+    // Get today's date at midnight UK time
+    const now = new Date();
+    const ukMidnight = new Date(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0)
+    );
+
+    return await db
+      .select()
+      .from(objectives)
+      .where(gte(objectives.createdAt, ukMidnight))
+      .orderBy(objectives.createdAt);
+  }
+
+  async createObjective(objective: InsertObjective): Promise<Objective> {
+    const [newObjective] = await db
+      .insert(objectives)
+      .values(objective)
+      .returning();
+    return newObjective;
+  }
+
+  async toggleObjective(id: number): Promise<Objective> {
+    const [objective] = await db
+      .select()
+      .from(objectives)
+      .where(eq(objectives.id, id));
+
+    if (!objective) {
+      throw new Error("Objective not found");
+    }
+
+    const [updatedObjective] = await db
+      .update(objectives)
+      .set({ completed: !objective.completed })
+      .where(eq(objectives.id, id))
+      .returning();
+
+    return updatedObjective;
+  }
+
+  async clearOldObjectives(): Promise<void> {
+    // Get today's date at midnight UK time
+    const now = new Date();
+    const ukMidnight = new Date(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0)
+    );
+
+    await db
+      .delete(objectives)
+      .where(lt(objectives.createdAt, ukMidnight));
   }
 }
 

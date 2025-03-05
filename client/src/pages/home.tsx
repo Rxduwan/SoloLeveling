@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { StatsCard } from "@/components/stats-card";
+import { ObjectivesSection } from "@/components/objectives-section";
 import { ProgressCircle } from "@/components/ui/progress-circle";
 import { PlayCircle, PauseCircle, RotateCcw } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -76,32 +77,35 @@ export default function Home() {
         </div>
 
         {mode === "stats" ? (
-          <div className="grid gap-6 md:grid-cols-4">
-            <StatsCard 
-              title="Health"
-              xp={stats.healthXP}
-              icon="❤️"
-              onAddXP={(amount) => updateStats.mutate({ healthXP: stats.healthXP + amount })}
-            />
-            <StatsCard
-              title="Finance"
-              xp={stats.financeXP}
-              icon="💰"
-              onAddXP={(amount) => updateStats.mutate({ financeXP: stats.financeXP + amount })}
-            />
-            <StatsCard
-              title="Deen"
-              xp={stats.deenXP}
-              icon="🕌"
-              onAddXP={(amount) => updateStats.mutate({ deenXP: stats.deenXP + amount })}
-            />
-            <StatsCard
-              title="Intellect"
-              xp={stats.intellectXP}
-              icon="🧠"
-              onAddXP={(amount) => updateStats.mutate({ intellectXP: stats.intellectXP + amount })}
-            />
-          </div>
+          <>
+            <ObjectivesSection />
+            <div className="grid gap-6 md:grid-cols-4">
+              <StatsCard 
+                title="Health"
+                xp={stats.healthXP}
+                icon="❤️"
+                onAddXP={(amount) => updateStats.mutate({ healthXP: stats.healthXP + amount })}
+              />
+              <StatsCard
+                title="Finance"
+                xp={stats.financeXP}
+                icon="💰"
+                onAddXP={(amount) => updateStats.mutate({ financeXP: stats.financeXP + amount })}
+              />
+              <StatsCard
+                title="Deen"
+                xp={stats.deenXP}
+                icon="🕌"
+                onAddXP={(amount) => updateStats.mutate({ deenXP: stats.deenXP + amount })}
+              />
+              <StatsCard
+                title="Intellect"
+                xp={stats.intellectXP}
+                icon="🧠"
+                onAddXP={(amount) => updateStats.mutate({ intellectXP: stats.intellectXP + amount })}
+              />
+            </div>
+          </>
         ) : (
           <Card className="p-6 flex flex-col items-center space-y-6">
             <ProgressCircle value={(timeLeft / (25 * 60)) * 100}>
