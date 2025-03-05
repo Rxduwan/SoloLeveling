@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { StatsCard } from "@/components/stats-card";
 import { ProgressCircle } from "@/components/ui/progress-circle";
@@ -66,13 +65,13 @@ export default function Home() {
       <div className="max-w-4xl mx-auto space-y-6">
         <div className="flex justify-between items-center">
           <h1 className="text-4xl font-bold tracking-tight">
-            {mode === "stats" ? "Statistics" : "Pomodoro Timer"}
+            {mode === "stats" ? "Solo Leveling" : "Pomodoro Timer"}
           </h1>
           <Button
             variant="outline"
             onClick={() => setMode(mode === "stats" ? "pomodoro" : "stats")}
           >
-            Switch to {mode === "stats" ? "Pomodoro" : "Stats"}
+            Switch to {mode === "stats" ? "Pomodoro" : "Solo Leveling"}
           </Button>
         </div>
 
